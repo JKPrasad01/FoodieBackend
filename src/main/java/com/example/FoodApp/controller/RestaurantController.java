@@ -64,7 +64,7 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.deleteRestaurantId(restaurantId));
     }
 
-    @GetMapping("/getAllMenu/{restaurantId}")
+    @GetMapping("/all-menus/{restaurantId}")
     public ResponseEntity<List<MenuDTO>> getAllMenuId(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(restaurantService.getAllMenu(restaurantId));
     }

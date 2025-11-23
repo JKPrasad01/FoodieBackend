@@ -110,7 +110,9 @@ public class JwtUtil {
     @Return token as string
      */
     public String generateJwtToken(UserDetails userDetails) {
-        return createJwtToken(new HashMap<String, Object>(), userDetails);
+        Map<String,Object> claims=new HashMap<>();
+        claims.put("role",userDetails.getAuthorities().iterator().next().getAuthority());
+        return createJwtToken(claims, userDetails);
     }
 
     public String generateRefreshToken(UserDetails userDetails){
@@ -118,7 +120,7 @@ public class JwtUtil {
                 .setClaims(new HashMap<String,Object>())
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+7L*24 * 60 * 60))
+                .setExpiration(new Date(System.currentTimeMillis()+7L*24 * 60 * 60*1000))
                 .signWith(getSigningKey(),SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -40,6 +41,7 @@ public class AuthController {
     @Transactional
     @PostMapping("/register")
     public ResponseEntity<UserDTO> register(@Valid @RequestBody SignupRequest signupRequest) {
+        logger.info("successfully register {}",signupRequest.getUsername());
         UserDTO userDTO = userService.registerUser(signupRequest);
         return ResponseEntity.ok(userDTO);
     }
@@ -48,8 +50,6 @@ public class AuthController {
     @PostMapping("/login-user")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {
-            logger.info("Login attempt for user: {}", loginRequest.getUsername());
-
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getUsername(),
@@ -59,17 +59,17 @@ public class AuthController {
 
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
+            // Generate tokens
             String jwtToken = jwtUtil.generateJwtToken(userDetails);
             String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
-            // Access token cookie
+            // Add cookies
             Cookie accessCookie = new Cookie("jwt", jwtToken);
             accessCookie.setHttpOnly(true);
             accessCookie.setSecure(false);
             accessCookie.setPath("/");
             accessCookie.setMaxAge(15 * 60);
 
-            // Refresh token cookie
             Cookie refreshCookie = new Cookie("refresh-token", refreshToken);
             refreshCookie.setHttpOnly(true);
             refreshCookie.setSecure(false);
@@ -79,13 +79,19 @@ public class AuthController {
             response.addCookie(accessCookie);
             response.addCookie(refreshCookie);
 
-            return ResponseEntity.ok("Logged In");
+            // Build response for frontend
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("message", "Logged In");
+
+            responseBody.put("token",jwtToken);
+
+            return ResponseEntity.ok(responseBody);
 
         } catch (Exception ex) {
-            logger.error("Login failed for user {}: {}", loginRequest.getUsername(), ex.getMessage());
             return ResponseEntity.status(401).body(Map.of("error", "Invalid username or password"));
         }
     }
+
 
 
     @GetMapping("/me")
