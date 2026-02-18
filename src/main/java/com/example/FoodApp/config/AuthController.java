@@ -23,10 +23,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth/user")
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        allowCredentials = "true" // critical: allows cookies in CORS
-)
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -34,19 +30,16 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final CustomUserDetailsService customUserDetailsService;
     private final JwtUtil jwtUtil;
 
-    // REGISTER USER
     @Transactional
     @PostMapping("/register")
     public ResponseEntity<UserDTO> register(@Valid @RequestBody SignupRequest signupRequest) {
-        logger.info("successfully register {}",signupRequest.getUsername());
         UserDTO userDTO = userService.registerUser(signupRequest);
+        logger.info("successfully register {}",signupRequest.getUsername());
         return ResponseEntity.ok(userDTO);
     }
 
-    // LOGIN USER
     @PostMapping("/login-user")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         try {

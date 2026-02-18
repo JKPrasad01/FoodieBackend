@@ -110,22 +110,19 @@ public class UserServiceImpl implements UserService {
         logger.info("Starting registration process for username: '{}' :" , signupRequest.getUsername());
 
         try{
+
             // validate user name
             if(userRepository.existsByUsername(signupRequest.getUsername())){
                 logger.warn("Registration failed : UserName '{}' is Already taken",signupRequest.getUsername());
+                throw new BadCredentialsException("username already exists!");
             }
 
             //validate user email
             if (userRepository.existsByUserEmail(signupRequest.getEmail())){
                 logger.warn("Registration failed : Email '{}' is Already existed",signupRequest.getEmail());
+                throw new BadCredentialsException("email already exists!");
             }
-
-
-            // create user
-            User user=mapToUser(signupRequest);
-
-            User saved = userRepository.save(user);
-
+            User saved = userRepository.save(mapToUser(signupRequest));
             logger.info("User registration successfully : ID:{},username:{} ,email : {}",saved.getUserId(),saved.getUsername(),saved.getUserEmail());
             return modelMapper.map(saved,UserDTO.class);
         }
